@@ -5,8 +5,8 @@ import HackerButton from '../components/HackerButton';
 export default function WinScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>✅ ACCESS GRANTED</Text>
-      <Text style={styles.subtitle}>You cracked the code!</Text>
+      <Text style={styles.title}>ACCESS GRANTED</Text>
+      <Text style={styles.subtitle}>Code successfully cracked.</Text>
 
       <View style={styles.buttons}>
         <HackerButton title="CRACK NEXT CODE" onPress={() => navigation.replace('Game')} />
@@ -30,12 +30,14 @@ const styles = StyleSheet.create({
     color: '#00ff99',
     fontFamily: 'Courier',
     marginBottom: 16,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#00ff99',
     fontFamily: 'Courier',
     marginBottom: 40,
+    textAlign: 'center',
   },
   buttons: {
     width: '100%',
