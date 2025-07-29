@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
+import AttemptProgress from '../components/AttemptProgress';
 import generateCode from '../utils/generateCode';
 import evaluateGuess from '../utils/evaluateGuess';
 import GuessRow from '../components/GuessRow';
@@ -10,6 +11,8 @@ export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [guesses, setGuesses] = useState([]);
+
+  const MAX_GUESSES = 10;
 
   useEffect(() => {
     const code = generateCode();
@@ -33,13 +36,20 @@ export default function GameScreen({ navigation }) {
         feedback,
       };
 
-      setGuesses((prev) => [...prev, newGuess]);
+      const newGuessList = [...guesses, newGuess];
+      setGuesses(newGuessList);
       setCurrentGuess([]);
 
-      if (feedback.every((f) => f === 'green')) {
+      const isWin = feedback.every((f) => f === 'green');
+      const isLastAttempt = newGuessList.length >= MAX_GUESSES;
+
+      if (isWin) {
         incrementCrackedCount();
-        navigation.replace('Win');
+        navigation.replace('Win', { result: 'win' });
+      } else if (isLastAttempt) {
+        navigation.replace('Win', { result: 'lose', code: secretCode });
       }
+
     } else if (currentGuess.length < 4 && /^[0-9]$/.test(key)) {
       setCurrentGuess((prev) => [...prev, parseInt(key)]);
     }
@@ -62,6 +72,8 @@ export default function GameScreen({ navigation }) {
           </Text>
         ))}
       </View>
+
+      <AttemptProgress current={guesses.length + 1} max={MAX_GUESSES} />
 
       <View style={styles.guessList}>
         {guesses.map((g, i) => (

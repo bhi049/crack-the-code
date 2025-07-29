@@ -2,11 +2,23 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import HackerButton from '../components/HackerButton';
 
-export default function WinScreen({ navigation }) {
+export default function WinScreen({ navigation, route }) {
+  const { result, code } = route.params || {};
+  const isWin = result === 'win';
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ACCESS GRANTED</Text>
-      <Text style={styles.subtitle}>Code successfully cracked.</Text>
+      <Text style={styles.title}>
+        {isWin ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
+      </Text>
+
+      <Text style={styles.subtitle}>
+        {isWin ? 'Code successfully cracked.' : 'System locked you out.'}
+      </Text>
+
+      {!isWin && code && (
+        <Text style={styles.codeReveal}>Code was: {code.join(' ')}</Text>
+      )}
 
       <View style={styles.buttons}>
         <HackerButton title="CRACK NEXT CODE" onPress={() => navigation.replace('Game')} />
@@ -15,6 +27,7 @@ export default function WinScreen({ navigation }) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +50,13 @@ const styles = StyleSheet.create({
     color: '#00ff99',
     fontFamily: 'Courier',
     marginBottom: 40,
+    textAlign: 'center',
+  },
+  codeReveal: {
+    color: '#ff4444',
+    fontSize: 18,
+    marginVertical: 20,
+    fontFamily: 'Courier',
     textAlign: 'center',
   },
   buttons: {
