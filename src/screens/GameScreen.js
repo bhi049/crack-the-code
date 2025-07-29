@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [guesses, setGuesses] = useState([]);
+
+  const scrollRef = useRef();
 
   const MAX_GUESSES = 10;
 
@@ -67,41 +69,56 @@ export default function GameScreen({ navigation }) {
     await AsyncStorage.setItem("codesCracked", (count + 1).toString());
   };
 
+  const groupGuessesIntoPages = (guesses, pageSize = 5) => {
+  const pages = [];
+  for (let i = 0; i < guesses.length; i += pageSize) {
+    pages.push(guesses.slice(i, i + pageSize));
+  }
+  return pages;
+};
+
+const guessPages = groupGuessesIntoPages(guesses);
+
+
   return (
-<SafeAreaView style={styles.safe}>
-  <View style={styles.container}>
-    {/* TOP SECTION */}
-    <View style={styles.gameContent}>
-      <Text style={styles.header}>ENTER CODE</Text>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        {/* TOP SECTION */}
+        <View style={styles.gameContent}>
+          <Text style={styles.header}>ENTER CODE</Text>
 
-      <View style={styles.current}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Text key={i} style={styles.digit}>
-            {currentGuess[i] !== undefined ? currentGuess[i] : "_"}
-          </Text>
-        ))}
+          <View style={styles.current}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Text key={i} style={styles.digit}>
+                {currentGuess[i] !== undefined ? currentGuess[i] : "_"}
+              </Text>
+            ))}
+          </View>
+
+          <AttemptProgress current={guesses.length + 1} max={MAX_GUESSES} />
+
+          <ScrollView
+            ref={scrollRef}
+            style={styles.guessList}
+            contentContainerStyle={styles.guessListContent}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() =>
+              scrollRef.current?.scrollToEnd({ animated: true })
+            }
+          >
+            {guesses.map((g, i) => (
+              <GuessRow key={i} guess={g.guess} feedback={g.feedback} />
+            ))}
+          </ScrollView>
+
+        </View>
+
+        {/* FIXED KEYPAD */}
+        <View style={styles.keypadWrapper}>
+          <Keypad onKeyPress={handleKeypadPress} />
+        </View>
       </View>
-
-      <AttemptProgress current={guesses.length + 1} max={MAX_GUESSES} />
-
-      <ScrollView
-        style={styles.guessList}
-        contentContainerStyle={styles.guessListContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {guesses.map((g, i) => (
-          <GuessRow key={i} guess={g.guess} feedback={g.feedback} />
-        ))}
-      </ScrollView>
-    </View>
-
-    {/* FIXED BOTTOM KEYPAD */}
-    <View style={styles.keypadWrapper}>
-      <Keypad onKeyPress={handleKeypadPress} />
-    </View>
-  </View>
-</SafeAreaView>
-
+    </SafeAreaView>
   );
 }
 
@@ -139,8 +156,9 @@ const styles = StyleSheet.create({
   },
   guessList: {
     flexGrow: 0,
-    maxHeight: 250,
+    maxHeight: 320, // was 250 — now fits more guesses
     marginBottom: 10,
+    position: "relative",
   },
   guessListContent: {
     paddingBottom: 4,
