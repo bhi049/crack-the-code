@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import AttemptProgress from '../components/AttemptProgress';
-import generateCode from '../utils/generateCode';
-import evaluateGuess from '../utils/evaluateGuess';
-import GuessRow from '../components/GuessRow';
-import Keypad from '../components/Keypad';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import AttemptProgress from "../components/AttemptProgress";
+import generateCode from "../utils/generateCode";
+import evaluateGuess from "../utils/evaluateGuess";
+import GuessRow from "../components/GuessRow";
+import Keypad from "../components/Keypad";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
@@ -22,11 +29,11 @@ export default function GameScreen({ navigation }) {
   }, []);
 
   const handleKeypadPress = (key) => {
-    if (key === '⌫') {
+    if (key === "⌫") {
       setCurrentGuess((prev) => prev.slice(0, -1));
-    } else if (key === '↩') {
+    } else if (key === "↩") {
       if (currentGuess.length !== 4) {
-        Alert.alert('Enter 4 digits');
+        Alert.alert("Enter 4 digits");
         return;
       }
 
@@ -40,79 +47,105 @@ export default function GameScreen({ navigation }) {
       setGuesses(newGuessList);
       setCurrentGuess([]);
 
-      const isWin = feedback.every((f) => f === 'green');
+      const isWin = feedback.every((f) => f === "green");
       const isLastAttempt = newGuessList.length >= MAX_GUESSES;
 
       if (isWin) {
         incrementCrackedCount();
-        navigation.replace('Win', { result: 'win' });
+        navigation.replace("Win", { result: "win" });
       } else if (isLastAttempt) {
-        navigation.replace('Win', { result: 'lose', code: secretCode });
+        navigation.replace("Win", { result: "lose", code: secretCode });
       }
-
     } else if (currentGuess.length < 4 && /^[0-9]$/.test(key)) {
       setCurrentGuess((prev) => [...prev, parseInt(key)]);
     }
   };
 
   const incrementCrackedCount = async () => {
-    const stored = await AsyncStorage.getItem('codesCracked');
+    const stored = await AsyncStorage.getItem("codesCracked");
     const count = stored ? parseInt(stored, 10) : 0;
-    await AsyncStorage.setItem('codesCracked', (count + 1).toString());
+    await AsyncStorage.setItem("codesCracked", (count + 1).toString());
   };
 
   return (
-    <View style={styles.container}>
+<SafeAreaView style={styles.safe}>
+  <View style={styles.container}>
+    {/* TOP SECTION */}
+    <View style={styles.gameContent}>
       <Text style={styles.header}>ENTER CODE</Text>
 
       <View style={styles.current}>
         {Array.from({ length: 4 }).map((_, i) => (
           <Text key={i} style={styles.digit}>
-            {currentGuess[i] !== undefined ? currentGuess[i] : '_'}
+            {currentGuess[i] !== undefined ? currentGuess[i] : "_"}
           </Text>
         ))}
       </View>
 
       <AttemptProgress current={guesses.length + 1} max={MAX_GUESSES} />
 
-      <View style={styles.guessList}>
+      <ScrollView
+        style={styles.guessList}
+        contentContainerStyle={styles.guessListContent}
+        showsVerticalScrollIndicator={false}
+      >
         {guesses.map((g, i) => (
           <GuessRow key={i} guess={g.guess} feedback={g.feedback} />
         ))}
-      </View>
+      </ScrollView>
+    </View>
 
+    {/* FIXED BOTTOM KEYPAD */}
+    <View style={styles.keypadWrapper}>
       <Keypad onKeyPress={handleKeypadPress} />
     </View>
+  </View>
+</SafeAreaView>
+
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#0a0a0a",
+  },
   container: {
     flex: 1,
-    backgroundColor: '#000',
-    paddingTop: 60,
+    backgroundColor: "#0a0a0a",
     paddingHorizontal: 16,
+  },
+  gameContent: {
+    flex: 1,
+    paddingTop: 60,
   },
   header: {
     fontSize: 20,
-    textAlign: 'center',
-    color: '#00ff99',
-    fontFamily: 'Courier',
+    textAlign: "center",
+    color: "#00ff99",
+    fontFamily: "Courier",
     marginBottom: 16,
   },
   current: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 16,
     marginBottom: 24,
   },
   digit: {
     fontSize: 32,
-    color: '#00ff99',
-    fontFamily: 'Courier',
+    color: "#00ff99",
+    fontFamily: "Courier",
   },
   guessList: {
-    flex: 1,
-    marginTop: 12,
+    flexGrow: 0,
+    maxHeight: 250,
+    marginBottom: 10,
+  },
+  guessListContent: {
+    paddingBottom: 4,
+  },
+  keypadWrapper: {
+    paddingBottom: 16,
   },
 });
