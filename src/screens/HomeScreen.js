@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import HackerButton from "../components/HackerButton";
 import getHackerStatus from "../utils/getHackerStatus";
 import StatusBadge from "../components/StatusBadge";
+import XPBar from "../components/XPBar";
 import { ThemeContext } from "../context/ThemeContext";
 
 export default function HomeScreen({ navigation }) {
@@ -24,6 +25,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <StatusBadge status={hackerStatus} />
+        <XPBar />
 
         <View style={styles.centeredContent}>
           <Text style={[styles.header, { color }]}>

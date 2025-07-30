@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import {
   View,
   Text,
@@ -7,25 +7,23 @@ import {
   SafeAreaView,
   ScrollView,
 } from "react-native";
-import { useContext } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ThemeContext } from "../context/ThemeContext";
+import { getXPRewardForMode } from "../utils/xp";
 
 import AttemptProgress from "../components/AttemptProgress";
 import generateCode from "../utils/generateCode";
 import evaluateGuess from "../utils/evaluateGuess";
 import GuessRow from "../components/GuessRow";
 import Keypad from "../components/Keypad";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [guesses, setGuesses] = useState([]);
 
-  const { color } = useContext(ThemeContext); // Get active color
-
+  const { color } = useContext(ThemeContext);
   const scrollRef = useRef();
-
   const MAX_GUESSES = 10;
 
   useEffect(() => {
@@ -35,7 +33,7 @@ export default function GameScreen({ navigation }) {
     setGuesses([]);
   }, []);
 
-  const handleKeypadPress = (key) => {
+  const handleKeypadPress = async (key) => {
     if (key === "⌫") {
       setCurrentGuess((prev) => prev.slice(0, -1));
     } else if (key === "↩") {
@@ -59,7 +57,14 @@ export default function GameScreen({ navigation }) {
 
       if (isWin) {
         incrementCrackedCount();
-        navigation.replace("Win", { result: "win" });
+
+        const xpGained = getXPRewardForMode("Classic");
+        const storedXP = await AsyncStorage.getItem("xp");
+        const currentXP = storedXP ? parseInt(storedXP, 10) : 0;
+        const newXP = currentXP + xpGained;
+        await AsyncStorage.setItem("xp", newXP.toString());
+
+        navigation.replace("Win", { result: "win", xp: xpGained });
       } else if (isLastAttempt) {
         navigation.replace("Win", { result: "lose", code: secretCode });
       }
@@ -75,15 +80,14 @@ export default function GameScreen({ navigation }) {
   };
 
   const groupGuessesIntoPages = (guesses, pageSize = 5) => {
-  const pages = [];
-  for (let i = 0; i < guesses.length; i += pageSize) {
-    pages.push(guesses.slice(i, i + pageSize));
-  }
-  return pages;
-};
+    const pages = [];
+    for (let i = 0; i < guesses.length; i += pageSize) {
+      pages.push(guesses.slice(i, i + pageSize));
+    }
+    return pages;
+  };
 
-const guessPages = groupGuessesIntoPages(guesses);
-
+  const guessPages = groupGuessesIntoPages(guesses);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -94,7 +98,7 @@ const guessPages = groupGuessesIntoPages(guesses);
 
           <View style={styles.current}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <Text key={i} style={[styles.digit, { color }]}>
+              <Text key={i} style={[styles.digit, { color }]}> 
                 {currentGuess[i] !== undefined ? currentGuess[i] : "_"}
               </Text>
             ))}
@@ -115,7 +119,6 @@ const guessPages = groupGuessesIntoPages(guesses);
               <GuessRow key={i} guess={g.guess} feedback={g.feedback} />
             ))}
           </ScrollView>
-
         </View>
 
         {/* FIXED KEYPAD */}
@@ -146,7 +149,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Courier",
     marginBottom: 16,
-},
+  },
   current: {
     flexDirection: "row",
     justifyContent: "center",
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
   },
   guessList: {
     flexGrow: 0,
-    maxHeight: 320, // was 250 — now fits more guesses
+    maxHeight: 320,
     marginBottom: 10,
     position: "relative",
   },
