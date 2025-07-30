@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { View, Text, StyleSheet, SafeAreaView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HackerButton from "../components/HackerButton";
 import getHackerStatus from "../utils/getHackerStatus";
 import StatusBadge from "../components/StatusBadge";
+import { ThemeContext } from "../context/ThemeContext";
 
 export default function HomeScreen({ navigation }) {
   const [codesCracked, setCodesCracked] = useState(100);
   const hackerStatus = getHackerStatus(codesCracked);
+  const { color } = useContext(ThemeContext); // Get active color
 
   useEffect(() => {
     const loadCount = async () => {
@@ -24,12 +26,18 @@ export default function HomeScreen({ navigation }) {
         <StatusBadge status={hackerStatus} />
 
         <View style={styles.centeredContent}>
-          <Text style={styles.header}>CODES CRACKED: {codesCracked}</Text>
+          <Text style={[styles.header, { color }]}>
+            CODES CRACKED: {codesCracked}
+          </Text>
 
           <View style={styles.buttons}>
             <HackerButton
               title="CRACK CODE"
               onPress={() => navigation.navigate("Game")}
+            />
+            <HackerButton
+              title="PROFILE"
+              onPress={() => navigation.navigate("Profile")}
             />
             <HackerButton
               title="SETTINGS"
@@ -59,7 +67,6 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 20,
-    color: "#00ff99",
     fontFamily: "Courier",
     marginBottom: 40,
   },

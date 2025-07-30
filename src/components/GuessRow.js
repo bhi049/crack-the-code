@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import FeedbackDots from './FeedbackDots';
+import { ThemeContext } from '../context/ThemeContext';
 
 export default function GuessRow({ guess, feedback }) {
+  const { color } = useContext(ThemeContext);
+
   return (
     <View style={styles.row}>
       <View style={styles.digits}>
         {guess.map((digit, index) => (
-          <Text key={index} style={styles.digit}>
+          <Text key={index} style={[styles.digit, { color }]}>
             {digit}
           </Text>
         ))}
@@ -34,7 +37,6 @@ const styles = StyleSheet.create({
   },
   digit: {
     fontSize: 24,
-    color: '#00ff99',
     fontFamily: 'Courier',
   },
 });

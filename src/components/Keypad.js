@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
 const KEYS = [
   ['1', '2', '3'],
@@ -9,6 +10,8 @@ const KEYS = [
 ];
 
 export default function Keypad({ onKeyPress }) {
+  const { color } = useContext(ThemeContext);
+
   return (
     <View style={styles.container}>
       {KEYS.map((row, rowIndex) => (
@@ -16,10 +19,10 @@ export default function Keypad({ onKeyPress }) {
           {row.map((key) => (
             <TouchableOpacity
               key={key}
-              style={styles.key}
+              style={[styles.key, { borderColor: color }]}
               onPress={() => onKeyPress(key)}
             >
-              <Text style={styles.text}>{key}</Text>
+              <Text style={[styles.text, { color }]}>{key}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -41,7 +44,6 @@ const styles = StyleSheet.create({
   key: {
     backgroundColor: '#111',
     borderWidth: 2,
-    borderColor: '#00ff99',
     borderRadius: 8,
     width: 80,
     height: 60,
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: '#00ff99',
     fontSize: 22,
     fontFamily: 'Courier',
   },

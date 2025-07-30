@@ -7,6 +7,9 @@ import {
   SafeAreaView,
   ScrollView,
 } from "react-native";
+import { useContext } from "react";
+import { ThemeContext } from "../context/ThemeContext";
+
 import AttemptProgress from "../components/AttemptProgress";
 import generateCode from "../utils/generateCode";
 import evaluateGuess from "../utils/evaluateGuess";
@@ -18,6 +21,8 @@ export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [guesses, setGuesses] = useState([]);
+
+  const { color } = useContext(ThemeContext); // Get active color
 
   const scrollRef = useRef();
 
@@ -85,11 +90,11 @@ const guessPages = groupGuessesIntoPages(guesses);
       <View style={styles.container}>
         {/* TOP SECTION */}
         <View style={styles.gameContent}>
-          <Text style={styles.header}>ENTER CODE</Text>
+          <Text style={[styles.header, { color }]}>ENTER CODE</Text>
 
           <View style={styles.current}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <Text key={i} style={styles.digit}>
+              <Text key={i} style={[styles.digit, { color }]}>
                 {currentGuess[i] !== undefined ? currentGuess[i] : "_"}
               </Text>
             ))}
@@ -139,10 +144,9 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 20,
     textAlign: "center",
-    color: "#00ff99",
     fontFamily: "Courier",
     marginBottom: 16,
-  },
+},
   current: {
     flexDirection: "row",
     justifyContent: "center",
@@ -151,7 +155,6 @@ const styles = StyleSheet.create({
   },
   digit: {
     fontSize: 32,
-    color: "#00ff99",
     fontFamily: "Courier",
   },
   guessList: {

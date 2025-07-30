@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
 export default function StatusBadge({ status }) {
+  const { color } = useContext(ThemeContext);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>YOUR STATUS:</Text>
+      <Text style={[styles.label, { color }]}>YOUR STATUS:</Text>
       <View style={styles.statusRow}>
         <Image source={status.image} style={styles.image} resizeMode="contain" />
         <Text style={[styles.text, { color: status.color }]}>{status.title}</Text>
@@ -23,7 +26,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    color: '#00ff99',
     fontSize: 14,
     fontFamily: 'Courier',
   },

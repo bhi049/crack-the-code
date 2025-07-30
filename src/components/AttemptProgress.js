@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
 export default function AttemptProgress({ current, max }) {
+  const { color } = useContext(ThemeContext);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Attempt {current} / {max}</Text>
+      <Text style={[styles.text, { color }]}>
+        Attempt {current} / {max}
+      </Text>
     </View>
   );
 }
@@ -15,7 +20,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: '#00ff99',
     fontSize: 16,
     fontFamily: 'Courier',
   },
