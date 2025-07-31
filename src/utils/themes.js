@@ -21,6 +21,6 @@ export const THEMES = {
   },
   Master: {
     name: 'Master',
-    color: '#ffcc33',
+    color: '#ff4444',
   },
 };
