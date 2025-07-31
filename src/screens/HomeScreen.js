@@ -6,17 +6,31 @@ import getHackerStatus from "../utils/getHackerStatus";
 import StatusBadge from "../components/StatusBadge";
 import XPBar from "../components/XPBar";
 import { ThemeContext } from "../context/ThemeContext";
+import UnlockPopup from "../components/UnlockPopup";
 
 export default function HomeScreen({ navigation }) {
   const [codesCracked, setCodesCracked] = useState(100);
+  const [showPopup, setShowPopup] = useState(false);
+  const [unlockedStatus, setUnlockedStatus] = useState(null);
   const hackerStatus = getHackerStatus(codesCracked);
-  const { color } = useContext(ThemeContext); // Get active color
+  const { color } = useContext(ThemeContext);
 
   useEffect(() => {
     const loadCount = async () => {
       const count = await AsyncStorage.getItem("codesCracked");
-      setCodesCracked(count ? parseInt(count, 10) : 0);
+      const cracked = count ? parseInt(count, 10) : 0;
+      setCodesCracked(cracked);
+
+      const newStatus = getHackerStatus(cracked);
+      const previousStatus = await AsyncStorage.getItem("lastStatus");
+
+      if (previousStatus !== newStatus.title) {
+        await AsyncStorage.setItem("lastStatus", newStatus.title);
+        setUnlockedStatus(newStatus);
+        setShowPopup(true);
+      }
     };
+
     const unsubscribe = navigation.addListener("focus", loadCount);
     return unsubscribe;
   }, [navigation]);
@@ -28,9 +42,7 @@ export default function HomeScreen({ navigation }) {
         <XPBar />
 
         <View style={styles.centeredContent}>
-          <Text style={[styles.header, { color }]}>
-            CODES CRACKED: {codesCracked}
-          </Text>
+          <Text style={[styles.header, { color }]}>CODES CRACKED: {codesCracked}</Text>
 
           <View style={styles.buttons}>
             <HackerButton
@@ -47,6 +59,12 @@ export default function HomeScreen({ navigation }) {
             />
           </View>
         </View>
+
+        <UnlockPopup
+          visible={showPopup}
+          status={unlockedStatus}
+          onHide={() => setShowPopup(false)}
+        />
       </View>
     </SafeAreaView>
   );

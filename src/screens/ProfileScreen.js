@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import Icon from 'react-native-vector-icons/Feather';
 import {
   View,
   Text,
@@ -7,6 +8,8 @@ import {
   FlatList,
   SafeAreaView,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import getHackerStatus from "../utils/getHackerStatus";
 import { THEMES } from "../utils/themes";
 import { getTheme } from "../utils/storage";
 import { ThemeContext } from "../context/ThemeContext";
@@ -14,34 +17,67 @@ import { ThemeContext } from "../context/ThemeContext";
 export default function ProfileScreen({ navigation }) {
   const { setTheme, color } = useContext(ThemeContext);
   const [selected, setSelected] = useState("Beginner");
+  const [unlockedThemes, setUnlockedThemes] = useState(["Beginner"]);
 
-  useEffect(() => {
-    const loadTheme = async () => {
-      const saved = await getTheme();
-      setSelected(saved);
-    };
-    loadTheme();
-  }, []);
+const loadStatus = async () => {
+  const count = await AsyncStorage.getItem("codesCracked");
+  const cracked = count ? parseInt(count, 10) : 0;
+  const status = getHackerStatus(cracked);
+
+  const themeOrder = [
+    "Beginner",
+    "Script Kiddie",
+    "Key Cracker",
+    "Code Phantom",
+    "Cyber Architect",
+    "Master",
+  ];
+
+  const unlocked = themeOrder.slice(0, themeOrder.indexOf(status.title) + 1);
+  const saved = await getTheme();
+
+  setSelected(saved);
+  setUnlockedThemes(unlocked);
+};
+loadStatus();
 
   const handleSelect = async (themeName) => {
     await setTheme(themeName);       // updates context + storage
     setSelected(themeName);          // update local UI state
   };
 
-  const renderItem = ({ item }) => {
-    const isActive = item.name === selected;
-    return (
-      <TouchableOpacity
-        onPress={() => handleSelect(item.name)}
-        style={[styles.themeItem, isActive && styles.selected]}
+const renderItem = ({ item }) => {
+  const isActive = item.name === selected;
+  const isUnlocked = unlockedThemes.includes(item.name);
+
+  return (
+    <TouchableOpacity
+      disabled={!isUnlocked}
+      onPress={() => handleSelect(item.name)}
+      style={[
+        styles.themeItem,
+        isActive && styles.selected,
+        !isUnlocked && { opacity: 0.4 }
+      ]}
+    >
+      <View style={[styles.colorPreview, { backgroundColor: item.color }]} />
+
+      <Text
+        style={[
+          styles.themeText,
+          isActive && { color: item.color },
+          !isUnlocked && { color: "#555" },
+        ]}
       >
-        <View style={[styles.colorPreview, { backgroundColor: item.color }]} />
-        <Text style={[styles.themeText, isActive && { color: item.color }]}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+        {item.name}
+      </Text>
+
+      {!isUnlocked && (
+        <Icon name="lock" size={16} color="#555" style={styles.lockIcon} />
+      )}
+    </TouchableOpacity>
+  );
+};
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -108,4 +144,8 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 6,
   },
+  lockIcon: {
+    marginLeft: 8,
+  },
+
 });
