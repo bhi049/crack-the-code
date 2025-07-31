@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Alert,
   SafeAreaView,
+  TouchableOpacity,
   ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -16,11 +17,13 @@ import generateCode from "../utils/generateCode";
 import evaluateGuess from "../utils/evaluateGuess";
 import GuessRow from "../components/GuessRow";
 import Keypad from "../components/Keypad";
+import ConfirmModal from "../components/ConfirmModal";
 
 export default function GameScreen({ navigation }) {
   const [secretCode, setSecretCode] = useState([]);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [guesses, setGuesses] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { color } = useContext(ThemeContext);
   const scrollRef = useRef();
@@ -32,6 +35,12 @@ export default function GameScreen({ navigation }) {
     setCurrentGuess([]);
     setGuesses([]);
   }, []);
+
+  // when pressing back or exit
+  const tryExit = () => {
+    setShowConfirm(true);
+  };
+
 
   const handleKeypadPress = async (key) => {
     if (key === "⌫") {
@@ -92,6 +101,9 @@ export default function GameScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
+        <TouchableOpacity onPress={tryExit}>
+          <Text style={[styles.back, { color }]}>← Back</Text>
+        </TouchableOpacity>
         {/* TOP SECTION */}
         <View style={styles.gameContent}>
           <Text style={[styles.header, { color }]}>ENTER CODE</Text>
@@ -125,6 +137,16 @@ export default function GameScreen({ navigation }) {
         <View style={styles.keypadWrapper}>
           <Keypad onKeyPress={handleKeypadPress} />
         </View>
+
+        {/* Confirm Modal */}
+        <ConfirmModal
+          visible={showConfirm}
+          onCancel={() => setShowConfirm(false)}
+          onConfirm={() => navigation.goBack()}
+          title="Exit Game?"
+          confirmText="Exit"
+          cancelText="Stay"
+        />
       </View>
     </SafeAreaView>
   );
@@ -139,6 +161,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0a0a0a",
     paddingHorizontal: 16,
+  },
+  back: {
+    fontFamily: "Courier",
+    marginBottom: 12,
+    fontSize: 16,
   },
   gameContent: {
     flex: 1,
