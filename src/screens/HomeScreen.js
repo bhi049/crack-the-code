@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HackerButton from "../components/HackerButton";
 import getHackerStatus from "../utils/getHackerStatus";
@@ -7,12 +7,15 @@ import StatusBadge from "../components/StatusBadge";
 import XPBar from "../components/XPBar";
 import { ThemeContext } from "../context/ThemeContext";
 import UnlockPopup from "../components/UnlockPopup";
+import StatusProgressModal from "../components/StatusProgressModal";
 
 export default function HomeScreen({ navigation }) {
   const [codesCracked, setCodesCracked] = useState(100);
   const [showPopup, setShowPopup] = useState(false);
   const [unlockedStatus, setUnlockedStatus] = useState(null);
   const hackerStatus = getHackerStatus(codesCracked);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
   const { color } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -41,32 +44,41 @@ export default function HomeScreen({ navigation }) {
         <StatusBadge status={hackerStatus} />
         <XPBar />
 
-        <View style={styles.centeredContent}>
-          <Text style={[styles.header, { color }]}>CODES CRACKED: {codesCracked}</Text>
+        <TouchableOpacity onPress={() => setShowStatusModal(true)}>
+          <Text style={[styles.header, { color }]}>
+            CODES CRACKED: {codesCracked}
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.buttons}>
-            <HackerButton
-              title="CRACK CODE"
-              onPress={() => navigation.navigate("Game")}
-            />
-            <HackerButton
-              title="PROFILE"
-              onPress={() => navigation.navigate("Profile")}
-            />
-            <HackerButton
-              title="SETTINGS"
-              onPress={() => navigation.navigate("Settings")}
-            />
-          </View>
-        </View>
-
-        <UnlockPopup
-          visible={showPopup}
-          status={unlockedStatus}
-          onHide={() => setShowPopup(false)}
+        <StatusProgressModal
+          visible={showStatusModal}
+          onClose={() => setShowStatusModal(false)}
+          cracked={codesCracked}
         />
+
+        <View style={styles.buttons}>
+          <HackerButton
+            title="CRACK CODE"
+            onPress={() => navigation.navigate("Game")}
+          />
+          <HackerButton
+            title="PROFILE"
+            onPress={() => navigation.navigate("Profile")}
+          />
+          <HackerButton
+            title="SETTINGS"
+            onPress={() => navigation.navigate("Settings")}
+          />
+        </View>
       </View>
-    </SafeAreaView>
+
+      <UnlockPopup
+        visible={showPopup}
+        status={unlockedStatus}
+        onHide={() => setShowPopup(false)}
+      />
+
+    </SafeAreaView >
   );
 }
 
@@ -89,6 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Courier",
     marginBottom: 40,
+    textAlign: "center",
   },
   buttons: {
     width: "100%",
