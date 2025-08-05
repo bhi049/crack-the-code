@@ -1,15 +1,23 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { getTheme, setTheme as saveTheme } from '../utils/storage';
-import { THEMES } from '../utils/themes';
+import { STATUS_THEMES, BONUS_THEMES } from '../utils/themes';
+
+const ALL_THEMES = {
+  ...STATUS_THEMES,
+  ...BONUS_THEMES.reduce((acc, cur) => {
+    acc[cur.name] = cur;
+    return acc;
+  }, {}),
+};
 
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [themeName, setThemeName] = useState('Beginner');
-  const [color, setColor] = useState(THEMES.Beginner.color);
+  const [color, setColor] = useState(ALL_THEMES['Beginner'].color);
 
   const applyTheme = (name) => {
-    const theme = THEMES[name] || THEMES.Beginner;
+    const theme = ALL_THEMES[name] || ALL_THEMES['Beginner'];
     setThemeName(theme.name);
     setColor(theme.color);
   };
@@ -29,7 +37,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ themeName, color, setTheme }}>
+    <ThemeContext.Provider value={{ themeName, color, setTheme, applyTheme }}>
       {children}
     </ThemeContext.Provider>
   );

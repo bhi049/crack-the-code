@@ -5,79 +5,109 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import getHackerStatus from "../utils/getHackerStatus";
-import { THEMES } from "../utils/themes";
+import { STATUS_THEMES, BONUS_THEMES } from "../utils/themes";
+import { getUnlockedBonusThemes } from "../utils/themeUnlocks";
 import { getTheme } from "../utils/storage";
 import { ThemeContext } from "../context/ThemeContext";
+import ThemePreviewModal from "../components/ThemePreviewModal";
 
 export default function ProfileScreen({ navigation }) {
   const { setTheme, color } = useContext(ThemeContext);
   const [selected, setSelected] = useState("Beginner");
   const [unlockedThemes, setUnlockedThemes] = useState(["Beginner"]);
+  const [unlockedBonusThemes, setUnlockedBonusThemes] = useState([]);
+  const [previewItem, setPreviewItem] = useState(null);
+  const [isStatusPreview, setIsStatusPreview] = useState(true);
 
-const loadStatus = async () => {
-  const count = await AsyncStorage.getItem("codesCracked");
-  const cracked = count ? parseInt(count, 10) : 0;
-  const status = getHackerStatus(cracked);
+  useEffect(() => {
+    const loadStatus = async () => {
+      const count = await AsyncStorage.getItem("codesCracked");
+      const cracked = count ? parseInt(count, 10) : 0;
+      const status = getHackerStatus(cracked);
+      const saved = await getTheme();
 
-  const themeOrder = [
-    "Beginner",
-    "Script Kiddie",
-    "Key Cracker",
-    "Code Phantom",
-    "Cyber Architect",
-    "Master",
-  ];
+      const themeOrder = Object.keys(STATUS_THEMES);
+      const unlocked = themeOrder.slice(0, themeOrder.indexOf(status.title) + 1);
 
-  const unlocked = themeOrder.slice(0, themeOrder.indexOf(status.title) + 1);
-  const saved = await getTheme();
+      const level = await AsyncStorage.getItem("level") || 1;
+      const adsWatched = JSON.parse(await AsyncStorage.getItem("adsWatched")) || [];
+      const challengesCompleted = JSON.parse(await AsyncStorage.getItem("challengesCompleted")) || [];
 
-  setSelected(saved);
-  setUnlockedThemes(unlocked);
-};
-loadStatus();
+      const bonus = getUnlockedBonusThemes({
+        cracked,
+        level: parseInt(level, 10),
+        adsWatched,
+        challengesCompleted,
+      });
+
+      setSelected(saved);
+      setUnlockedThemes(unlocked);
+      setUnlockedBonusThemes(bonus);
+    };
+
+    loadStatus();
+  }, []);
 
   const handleSelect = async (themeName) => {
-    await setTheme(themeName);       // updates context + storage
-    setSelected(themeName);          // update local UI state
+    await setTheme(themeName);
+    setSelected(themeName);
   };
 
-const renderItem = ({ item }) => {
-  const isActive = item.name === selected;
-  const isUnlocked = unlockedThemes.includes(item.name);
+  const handleUnlock = (themeKey) => {
+    setUnlockedBonusThemes((prev) => [...new Set([...prev, themeKey])]);
+  };
 
-  return (
-    <TouchableOpacity
-      disabled={!isUnlocked}
-      onPress={() => handleSelect(item.name)}
-      style={[
-        styles.themeItem,
-        isActive && styles.selected,
-        !isUnlocked && { opacity: 0.4 }
-      ]}
-    >
-      <View style={[styles.colorPreview, { backgroundColor: item.color }]} />
+  const handlePreview = (item, isStatus) => {
+    setPreviewItem(item);
+    setIsStatusPreview(isStatus);
+  };
 
-      <Text
+  const closeModal = () => {
+    setPreviewItem(null);
+  };
+
+  const renderItem = (item, isStatusTheme) => {
+    const isUnlocked = isStatusTheme
+      ? unlockedThemes.includes(item.name)
+      : unlockedBonusThemes.includes(item.key);
+
+    const isActive = item.name === selected;
+
+    return (
+      <TouchableOpacity
+        key={item.name}
+        onPress={() => handlePreview(item, isStatusTheme)}
         style={[
-          styles.themeText,
-          isActive && { color: item.color },
-          !isUnlocked && { color: "#555" },
+          styles.themeItem,
+          isActive && styles.selected,
+          !isUnlocked && { opacity: 0.4 },
         ]}
       >
-        {item.name}
-      </Text>
+        <View style={[styles.colorPreview, { backgroundColor: item.color }]} />
 
-      {!isUnlocked && (
-        <Icon name="lock" size={16} color="#555" style={styles.lockIcon} />
-      )}
-    </TouchableOpacity>
-  );
-};
+        <Text
+          style={[
+            styles.themeText,
+            isActive && { color: item.color },
+            !isUnlocked && { color: "#555" },
+          ]}
+        >
+          {item.name}
+        </Text>
+
+        {!isUnlocked && (
+          <Text style={styles.unlockText}>
+            {isStatusTheme ? <Icon name="lock" size={16} color="#555" /> : ` ${item.unlock}`}
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -88,13 +118,29 @@ const renderItem = ({ item }) => {
 
         <Text style={[styles.header, { color }]}>Choose Theme</Text>
 
-        <FlatList
-          data={Object.values(THEMES)}
-          keyExtractor={(item) => item.name}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-        />
+        <ScrollView contentContainerStyle={styles.list}>
+          <Text style={[styles.subHeader, { color }]}>Status Themes</Text>
+          {Object.values(STATUS_THEMES).map((item) => renderItem(item, true))}
+
+          <Text style={[styles.subHeader, { color, marginTop: 30 }]}>Bonus Themes</Text>
+          {BONUS_THEMES.map((item) => renderItem(item, false))}
+        </ScrollView>
       </View>
+
+      {/* Modal for previewing and selecting/unlocking themes */}
+      <ThemePreviewModal
+        visible={!!previewItem}
+        theme={previewItem}
+        unlocked={
+          previewItem &&
+          (isStatusPreview
+            ? unlockedThemes.includes(previewItem.name)
+            : unlockedBonusThemes.includes(previewItem.key))
+        }
+        onClose={closeModal}
+        onSelect={handleSelect}
+        onUnlock={handleUnlock}
+      />
     </SafeAreaView>
   );
 }
@@ -120,6 +166,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  subHeader: {
+    fontSize: 16,
+    fontFamily: "Courier",
+    marginBottom: 12,
+    marginTop: 12,
+  },
   list: {
     paddingBottom: 20,
   },
@@ -144,8 +196,10 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 6,
   },
-  lockIcon: {
-    marginLeft: 8,
+  unlockText: {
+    marginLeft: "auto",
+    fontFamily: "Courier",
+    fontSize: 12,
+    color: "#888",
   },
-
 });
