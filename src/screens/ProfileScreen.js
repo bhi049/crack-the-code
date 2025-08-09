@@ -81,7 +81,15 @@ export default function ProfileScreen({ navigation }) {
     return (
       <TouchableOpacity
         key={item.name}
-        onPress={() => handlePreview(item, isStatusTheme)}
+        onPress={() => {
+          if (isUnlocked) {
+            // Directly apply unlocked themes
+            handleSelect(item.name);
+          } else {
+            // Open preview modal for locked themes
+            handlePreview(item, isStatusTheme);
+          }
+        }}
         style={[
           styles.themeItem,
           isActive && styles.selected,

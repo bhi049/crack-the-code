@@ -58,7 +58,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.buttons}>
           <HackerButton
-            title="CRACK CODE"
+            title="CLASSIC MODE"
             onPress={() => navigation.navigate("Game")}
           />
           <HackerButton

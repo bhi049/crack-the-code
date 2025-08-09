@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -6,8 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { ThemeContext } from "../context/ThemeContext";
-import { saveAdWatched, getTheme } from "../utils/storage";
+import { saveAdWatched } from "../utils/storage";
 
 export default function ThemePreviewModal({
   visible,
@@ -17,58 +16,36 @@ export default function ThemePreviewModal({
   onSelect,
   onUnlock,
 }) {
-  const { applyTheme } = useContext(ThemeContext);
-  const [originalTheme, setOriginalTheme] = useState(null);
-
-  useEffect(() => {
-    const handlePreview = async () => {
-      if (visible && theme) {
-        const current = await getTheme();
-        setOriginalTheme(current);
-        applyTheme(theme.name); // apply preview
-      }
-    };
-
-    handlePreview();
-
-    // On cleanup (when modal is closed), restore the original theme if not selected
-    return () => {
-      if (originalTheme && !unlocked) {
-        applyTheme(originalTheme);
-      }
-    };
-  }, [visible, theme]);
+  if (!theme) return null;
 
   const handleWatchAd = async () => {
-    await new Promise((res) => setTimeout(res, 2000)); // Simulate ad
+    // Simulate watching ad
+    await new Promise((res) => setTimeout(res, 2000));
     await saveAdWatched(theme.key);
     onUnlock(theme.key);
     onClose();
   };
 
-  if (!theme) return null;
-
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
+          {/* Title */}
           <Text style={[styles.header, { color: theme.color }]}>
             Theme: {theme.name}
           </Text>
 
+          {/* Local preview swatch */}
           <View style={[styles.preview, { backgroundColor: theme.color }]}>
             <Text style={styles.previewText}>Preview</Text>
           </View>
 
-          {!unlocked && (
-            <Text style={styles.requirement}>🔒 Unlock: {theme.unlock}</Text>
-          )}
-
+          {/* Select or Unlock */}
           {unlocked ? (
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                onSelect(theme.name);
+                onSelect(theme.name); // Apply theme globally only when selected
                 onClose();
               }}
             >
@@ -80,6 +57,7 @@ export default function ThemePreviewModal({
             </TouchableOpacity>
           ) : null}
 
+          {/* Cancel */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeText}>Cancel</Text>
           </TouchableOpacity>
@@ -125,12 +103,15 @@ const styles = StyleSheet.create({
     fontFamily: "Courier",
     color: "#888",
     marginBottom: 12,
+    textAlign: "center",
   },
   button: {
     backgroundColor: "#333",
     padding: 10,
     borderRadius: 6,
     marginBottom: 8,
+    minWidth: "70%",
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
@@ -143,6 +124,6 @@ const styles = StyleSheet.create({
   closeText: {
     color: "#888",
     fontFamily: "Courier",
-    fontSize: 13,
+    fontSize: 20,
   },
 });
