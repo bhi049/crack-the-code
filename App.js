@@ -10,6 +10,7 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import DailyOverviewScreen from "./src/screens/DailyOverviewScreen";
 import DailyCrackScreen from "./src/screens/DailyCrackScreen";
 import ThemeScreen from "./src/screens/ThemeScreen";
+import BadgesScreen from "./src/screens/BadgesScreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
           <Stack.Screen name="Win" component={WinScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Theme" component={ThemeScreen} />
+          <Stack.Screen name="Badges" component={BadgesScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ThemeProvider>

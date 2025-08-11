@@ -47,7 +47,7 @@ export default function ProfileScreen({ navigation }) {
 
           <MenuButton
             title="BADGES"
-            onPress={() => Alert.alert("Coming soon", "Badges screen is on the way.")}
+            onPress={() => navigation.navigate("Badges")}
             style={styles.wide}
           />
         </View>
