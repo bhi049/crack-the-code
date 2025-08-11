@@ -1,4 +1,5 @@
 import React from "react";
+import { StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ThemeProvider } from "./src/context/ThemeContext";
@@ -11,11 +12,15 @@ import DailyOverviewScreen from "./src/screens/DailyOverviewScreen";
 import DailyCrackScreen from "./src/screens/DailyCrackScreen";
 import ThemeScreen from "./src/screens/ThemeScreen";
 import BadgesScreen from "./src/screens/BadgesScreen";
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <ThemeProvider>
+      {/* Set status bar icons/text to white on all screens */}
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
