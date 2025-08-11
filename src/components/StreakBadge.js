@@ -46,7 +46,7 @@ export default function StreakBadge(props) {
       ]}
     >
       <View style={styles.row}>
-        <Text style={[styles.label, { color }]}>{/* left */}STREAK</Text>
+        <Text style={[styles.label, { color }]}>{/* left */}DAILY STREAK</Text>
         <Text style={[styles.value, { color }]}>{streak} days</Text>
       </View>
 

@@ -1,213 +1,97 @@
-import React, { useEffect, useState, useContext } from "react";
-import Icon from 'react-native-vector-icons/Feather';
+import React, { useContext } from "react";
 import {
+  SafeAreaView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import getHackerStatus from "../utils/getHackerStatus";
-import { STATUS_THEMES, BONUS_THEMES } from "../utils/themes";
-import { getUnlockedBonusThemes } from "../utils/themeUnlocks";
-import { getTheme } from "../utils/storage";
 import { ThemeContext } from "../context/ThemeContext";
-import ThemePreviewModal from "../components/ThemePreviewModal";
 
 export default function ProfileScreen({ navigation }) {
-  const { setTheme, color } = useContext(ThemeContext);
-  const [selected, setSelected] = useState("Beginner");
-  const [unlockedThemes, setUnlockedThemes] = useState(["Beginner"]);
-  const [unlockedBonusThemes, setUnlockedBonusThemes] = useState([]);
-  const [previewItem, setPreviewItem] = useState(null);
-  const [isStatusPreview, setIsStatusPreview] = useState(true);
+  const { color } = useContext(ThemeContext);
 
-  useEffect(() => {
-    const loadStatus = async () => {
-      const count = await AsyncStorage.getItem("codesCracked");
-      const cracked = count ? parseInt(count, 10) : 0;
-      const status = getHackerStatus(cracked);
-      const saved = await getTheme();
-
-      const themeOrder = Object.keys(STATUS_THEMES);
-      const unlocked = themeOrder.slice(0, themeOrder.indexOf(status.title) + 1);
-
-      const level = await AsyncStorage.getItem("level") || 1;
-      const adsWatched = JSON.parse(await AsyncStorage.getItem("adsWatched")) || [];
-      const challengesCompleted = JSON.parse(await AsyncStorage.getItem("challengesCompleted")) || [];
-
-      const bonus = getUnlockedBonusThemes({
-        cracked,
-        level: parseInt(level, 10),
-        adsWatched,
-        challengesCompleted,
-      });
-
-      setSelected(saved);
-      setUnlockedThemes(unlocked);
-      setUnlockedBonusThemes(bonus);
-    };
-
-    loadStatus();
-  }, []);
-
-  const handleSelect = async (themeName) => {
-    await setTheme(themeName);
-    setSelected(themeName);
-  };
-
-  const handleUnlock = (themeKey) => {
-    setUnlockedBonusThemes((prev) => [...new Set([...prev, themeKey])]);
-  };
-
-  const handlePreview = (item, isStatus) => {
-    setPreviewItem(item);
-    setIsStatusPreview(isStatus);
-  };
-
-  const closeModal = () => {
-    setPreviewItem(null);
-  };
-
-  const renderItem = (item, isStatusTheme) => {
-    const isUnlocked = isStatusTheme
-      ? unlockedThemes.includes(item.name)
-      : unlockedBonusThemes.includes(item.key);
-
-    const isActive = item.name === selected;
-
-    return (
-      <TouchableOpacity
-        key={item.name}
-        onPress={() => {
-          if (isUnlocked) {
-            // Directly apply unlocked themes
-            handleSelect(item.name);
-          } else {
-            // Open preview modal for locked themes
-            handlePreview(item, isStatusTheme);
-          }
-        }}
-        style={[
-          styles.themeItem,
-          isActive && styles.selected,
-          !isUnlocked && { opacity: 0.4 },
-        ]}
-      >
-        <View style={[styles.colorPreview, { backgroundColor: item.color }]} />
-
-        <Text
-          style={[
-            styles.themeText,
-            isActive && { color: item.color },
-            !isUnlocked && { color: "#555" },
-          ]}
-        >
-          {item.name}
-        </Text>
-
-        {!isUnlocked && (
-          <Text style={styles.unlockText}>
-            {isStatusTheme ? <Icon name="lock" size={16} color="#555" /> : ` ${item.unlock}`}
-          </Text>
-        )}
-      </TouchableOpacity>
-    );
-  };
+  const MenuButton = ({ title, onPress, style }) => (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={[styles.btn, style, { borderColor: color }]}
+    >
+      <Text style={[styles.btnText, { color }]}>{title}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
+        {/* Back */}
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={[styles.back, { color }]}>← Back</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.header, { color }]}>Choose Theme</Text>
+        {/* Grid */}
+        <View style={styles.grid}>
+          <View style={styles.row}>
+            <MenuButton
+              title="THEMES"
+              onPress={() => navigation.navigate("Theme")}
+              style={styles.square}
+            />
+            <MenuButton
+              title="SOUND"
+              onPress={() => Alert.alert("Coming soon", "Sound settings are on the way.")}
+              style={styles.square}
+            />
+          </View>
 
-        <ScrollView contentContainerStyle={styles.list}>
-          <Text style={[styles.subHeader, { color }]}>Status Themes</Text>
-          {Object.values(STATUS_THEMES).map((item) => renderItem(item, true))}
-
-          <Text style={[styles.subHeader, { color, marginTop: 30 }]}>Bonus Themes</Text>
-          {BONUS_THEMES.map((item) => renderItem(item, false))}
-        </ScrollView>
+          <MenuButton
+            title="BADGES"
+            onPress={() => Alert.alert("Coming soon", "Badges screen is on the way.")}
+            style={styles.wide}
+          />
+        </View>
       </View>
-
-      {/* Modal for previewing and selecting/unlocking themes */}
-      <ThemePreviewModal
-        visible={!!previewItem}
-        theme={previewItem}
-        unlocked={
-          previewItem &&
-          (isStatusPreview
-            ? unlockedThemes.includes(previewItem.name)
-            : unlockedBonusThemes.includes(previewItem.key))
-        }
-        onClose={closeModal}
-        onSelect={handleSelect}
-        onUnlock={handleUnlock}
-      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  safe: { flex: 1, backgroundColor: "#0a0a0a" },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 12 },
+  back: { fontFamily: "Courier", fontSize: 16, marginBottom: 16 },
+
+  grid: {
     flex: 1,
-    backgroundColor: "#0a0a0a",
+    justifyContent: "center",
+    gap: 24,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-    padding: 20,
-  },
-  back: {
-    fontFamily: "Courier",
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  header: {
-    fontSize: 22,
-    fontFamily: "Courier",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  subHeader: {
-    fontSize: 16,
-    fontFamily: "Courier",
-    marginBottom: 12,
-    marginTop: 12,
-  },
-  list: {
-    paddingBottom: 20,
-  },
-  themeItem: {
+  row: {
     flexDirection: "row",
+    gap: 20,
+    justifyContent: "center",
+  },
+  btn: {
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 22,
     alignItems: "center",
-    marginBottom: 16,
+    justifyContent: "center",
+    backgroundColor: "#0f0f0f",
   },
-  colorPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    marginRight: 16,
+  square: {
+    width: 140,
+    height: 100,
   },
-  themeText: {
+  wide: {
+    alignSelf: "center",
+    width: 300,
+    height: 70,
+  },
+  btnText: {
+    fontFamily: "Courier",
     fontSize: 16,
-    fontFamily: "Courier",
-    color: "#ccc",
-  },
-  selected: {
-    backgroundColor: "#111",
-    padding: 6,
-    borderRadius: 6,
-  },
-  unlockText: {
-    marginLeft: "auto",
-    fontFamily: "Courier",
-    fontSize: 12,
-    color: "#888",
+    letterSpacing: 1,
   },
 });

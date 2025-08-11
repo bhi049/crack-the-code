@@ -20,7 +20,7 @@ import evaluateGuess from "../utils/evaluateGuess";
 import { reconcileDailyStreak } from "../utils/daily";
 
 /* ---------- Config ---------- */
-const BASE_MAX_ATTEMPTS = 6;          // your current choice
+const BASE_MAX_ATTEMPTS = 6;
 const EXTRA_ATTEMPTS_PER_AD = 2;
 const MAX_AD_RETRIES_PER_DAY = 2;
 const DAILY_XP_REWARD = 300;
