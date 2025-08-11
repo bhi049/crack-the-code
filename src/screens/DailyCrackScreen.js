@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ThemeContext } from "../context/ThemeContext";
+import RetryPrompt from "../components/RetryPrompt";
 
 import AttemptProgress from "../components/AttemptProgress";
 import GuessRow from "../components/GuessRow";
@@ -66,6 +67,7 @@ export default function DailyCrackScreen({ navigation }) {
   const { color } = useContext(ThemeContext);
 
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showRetryPrompt, setShowRetryPrompt] = useState(false);
 
   const [todayKey] = useState(dateKey());
   const [secret, setSecret] = useState([]);
@@ -132,14 +134,7 @@ export default function DailyCrackScreen({ navigation }) {
         navigation.replace("Win", { result: "win", xp: DAILY_XP_REWARD });
       } else if (outOfAttempts) {
         if (retriesUsed < MAX_AD_RETRIES_PER_DAY) {
-          Alert.alert(
-            "Out of attempts",
-            `Watch an ad to get +${EXTRA_ATTEMPTS_PER_AD} attempts?\n(${retriesUsed}/${MAX_AD_RETRIES_PER_DAY} ads used today)`,
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Watch Ad", onPress: handleWatchAd },
-            ]
-          );
+          setShowRetryPrompt(true);
         } else {
           await handleLoseFinal();
           navigation.replace("Win", { result: "lose", code: secret });
@@ -155,11 +150,19 @@ export default function DailyCrackScreen({ navigation }) {
 
   const handleWatchAd = async () => {
     if (retriesUsed >= MAX_AD_RETRIES_PER_DAY) return;
-    await new Promise((r) => setTimeout(r, 1500)); // simulate ad
+    // simulate ad
+    await new Promise((r) => setTimeout(r, 1500));
     const used = retriesUsed + 1;
     setRetriesUsed(used);
     await AsyncStorage.setItem(`dailyAdRetries_${todayKey}`, String(used));
+    setShowRetryPrompt(false);
     Alert.alert("Attempts Added", `+${EXTRA_ATTEMPTS_PER_AD} attempts granted.`);
+  };
+
+  const handleGiveUp = async () => {
+    setShowRetryPrompt(false);
+    await handleLoseFinal();
+    navigation.replace("Win", { result: "lose", code: secret });
   };
 
   const handleWin = async () => {
@@ -247,8 +250,8 @@ export default function DailyCrackScreen({ navigation }) {
                 <Text style={styles.retryText}>
                   No attempts left. Watch an ad to add {EXTRA_ATTEMPTS_PER_AD} attempts.
                 </Text>
-                <TouchableOpacity style={styles.retryBtn} onPress={handleWatchAd}>
-                  <Text style={styles.retryBtnText}>Watch Ad</Text>
+                <TouchableOpacity style={styles.retryBtn} onPress={() => setShowRetryPrompt(true)}>
+                  <Text style={styles.retryBtnText}>Continue</Text>
                 </TouchableOpacity>
                 <Text style={styles.retryMeta}>
                   Ads used {retriesUsed}/{MAX_AD_RETRIES_PER_DAY}
@@ -264,6 +267,21 @@ export default function DailyCrackScreen({ navigation }) {
           </View>
         )}
 
+        {/* Custom retry prompt */}
+        <RetryPrompt
+          visible={showRetryPrompt}
+          used={retriesUsed}
+          max={MAX_AD_RETRIES_PER_DAY}
+          color={color}
+          onContinue={handleWatchAd}
+          onGiveUp={handleGiveUp}
+          title="Out of attempts"
+          message={`Watch an ad to get +${EXTRA_ATTEMPTS_PER_AD} attempts?`}
+          continueText="Continue"
+          giveUpText="Give Up"
+        />
+
+        {/* Confirm leave */}
         <ConfirmModal
           visible={showConfirm}
           onCancel={() => setShowConfirm(false)}
@@ -277,7 +295,6 @@ export default function DailyCrackScreen({ navigation }) {
   );
 }
 
-/* ---------- Styles ---------- */
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#0a0a0a" },
   container: { flex: 1, backgroundColor: "#0a0a0a", paddingHorizontal: 16 },
