@@ -1,29 +1,29 @@
+// src/utils/evaluateGuess.js
 export default function evaluateGuess(secret, guess) {
-  const feedback = Array(4).fill('red');
-  const secretUsed = Array(4).fill(false);
-  const guessUsed = Array(4).fill(false);
+  const n = secret.length;
+  const feedback = Array(n).fill("red");
+  const secretUsed = Array(n).fill(false);
+  const guessUsed = Array(n).fill(false);
 
-  // 1. First pass: check for correct digit & position (green)
-  for (let i = 0; i < 4; i++) {
+  // Greens
+  for (let i = 0; i < n; i++) {
     if (guess[i] === secret[i]) {
-      feedback[i] = 'green';
+      feedback[i] = "green";
       secretUsed[i] = true;
       guessUsed[i] = true;
     }
   }
-
-  // 2. Second pass: check for correct digit in wrong place (yellow)
-  for (let i = 0; i < 4; i++) {
-    if (!guessUsed[i]) {
-      for (let j = 0; j < 4; j++) {
-        if (!secretUsed[j] && guess[i] === secret[j]) {
-          feedback[i] = 'yellow';
-          secretUsed[j] = true;
-          break;
-        }
+  // Yellows
+  for (let i = 0; i < n; i++) {
+    if (guessUsed[i]) continue;
+    for (let j = 0; j < n; j++) {
+      if (!secretUsed[j] && guess[i] === secret[j]) {
+        feedback[i] = "yellow";
+        secretUsed[j] = true;
+        guessUsed[i] = true;
+        break;
       }
     }
   }
-
   return feedback;
 }

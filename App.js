@@ -7,6 +7,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import GameScreen from "./src/screens/GameScreen";
 import WinScreen from "./src/screens/WinScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import DailyOverviewScreen from "./src/screens/DailyOverviewScreen";
+import DailyCrackScreen from "./src/screens/DailyCrackScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +19,8 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Game" component={GameScreen} />
+          <Stack.Screen name="DailyOverview" component={DailyOverviewScreen} />
+          <Stack.Screen name="DailyCrack" component={DailyCrackScreen} />
           <Stack.Screen name="Win" component={WinScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
         </Stack.Navigator>

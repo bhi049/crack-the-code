@@ -1,17 +1,18 @@
+// src/components/FeedbackDots.js
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-export default function FeedbackDots({ feedback }) {
+export default function FeedbackDots({ feedback = [] }) {
   return (
     <View style={styles.row}>
-      {feedback.map((color, index) => (
+      {feedback.map((f, idx) => (
         <View
-          key={index}
+          key={idx}
           style={[
             styles.dot,
-            color === 'green' && styles.green,
-            color === 'yellow' && styles.yellow,
-            color === 'red' && styles.red,
+            f === 'green' && styles.green,
+            f === 'yellow' && styles.yellow,
+            f === 'red' && styles.red,
           ]}
         />
       ))}
@@ -20,23 +21,9 @@ export default function FeedbackDots({ feedback }) {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#333',
-  },
-  green: {
-    backgroundColor: '#00ff99',
-  },
-  yellow: {
-    backgroundColor: '#ffff00',
-  },
-  red: {
-    backgroundColor: '#ff3333',
-  },
+  row: { flexDirection: 'row', gap: 6 },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#444' },
+  green: { backgroundColor: '#21c55d' },
+  yellow: { backgroundColor: '#eab308' },
+  red: { backgroundColor: '#ef4444' },
 });
